@@ -1,5 +1,7 @@
 package com.example.springbootservice.service;
 
+import com.example.springbootservice.core.AppConstants;
+import com.example.springbootservice.core.AppException;
 import com.example.springbootservice.dto.request.UserCreationRequest;
 import com.example.springbootservice.entity.User;
 import com.example.springbootservice.repository.UserRepository;
@@ -14,10 +16,9 @@ public class UserService {
     private UserRepository userRepository;
 
     public User createRequest(UserCreationRequest request) {
-        User existUser = userRepository.findUserByUsername(request.getUsername());
-
-        if (existUser != null)
-            throw new RuntimeException("User with username " + existUser.getUsername() + " already exists");
+        if (userRepository.existsByUsername(request.getUsername()))
+            throw new AppException(AppConstants.ExceptionType.DUPLICATE_RESOURCE,
+                    "User with username " + request.getUsername() + " already exists");
 
         User user = new User(request);
 
@@ -28,8 +29,8 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getUserById(String id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User with ID " + id + " not found"));
+    public User getUserById(String userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppConstants.ExceptionType.ENTITY_NOT_FOUND, "User with ID " + userId + " not found"));
     }
 }

@@ -18,6 +18,10 @@ public class User {
     private String fullName;
     private LocalDate birthday;
 
+    public User() {
+
+    }
+
     public User(UserCreationRequest request) {
         setUsername(request.getUsername());
         setPassword(request.getPassword());
