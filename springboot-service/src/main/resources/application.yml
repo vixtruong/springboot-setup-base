@@ -12,3 +12,8 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+
+jwt:
+  secretKey: "VGhpcyBpcyBhIHZlcnkgc2VjcmV0IGtleSBmb3IganNvbndlYg"
+  issuer: "springboot-service"
+  audience: "web-client"
