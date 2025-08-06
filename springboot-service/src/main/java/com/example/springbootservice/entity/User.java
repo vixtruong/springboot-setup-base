@@ -1,13 +1,15 @@
 package com.example.springbootservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.example.springbootservice.dto.request.UserCreationRequest;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -24,4 +26,33 @@ public class User {
     private String password;
     private String fullName;
     private LocalDate birthday;
+    @Column(columnDefinition = "TEXT")
+    private String roles;
+
+    public User(UserCreationRequest request) {
+        this.username = request.getUsername();
+        this.password = request.getPassword();
+        this.fullName = request.getFullName();
+        this.birthday = request.getBirthday();
+    }
+
+    @Transient
+    public Set<String> getRoleSet() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.readValue(roles, new TypeReference<Set<String>>() {
+            });
+        } catch (Exception e) {
+            return new HashSet<>();
+        }
+    }
+
+    public void setRoleSet(Set<String> roleSet) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            this.roles = mapper.writeValueAsString(roleSet);
+        } catch (Exception e) {
+            this.roles = "[]";
+        }
+    }
 }

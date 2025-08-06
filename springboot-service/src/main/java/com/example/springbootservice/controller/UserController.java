@@ -16,14 +16,14 @@ import java.util.List;
 @RequestMapping("/api/users")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
-    UserService userService;
+    private final UserService userService;
 
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
-    OkResponse getUsers() {
+    OkResponse<?> getUsers() {
         List<UserResponse> users = userService.getUsers();
         return OkResponse.builder()
                 .data(users)
@@ -31,7 +31,7 @@ public class UserController {
     }
 
     @PostMapping
-    OkResponse createUser(@RequestBody @Valid UserCreationRequest request) {
+    OkResponse<?> createUser(@RequestBody @Valid UserCreationRequest request) {
         UserResponse user = userService.createUser(request);
         return OkResponse.builder()
                 .data(user)
@@ -39,7 +39,7 @@ public class UserController {
     }
 
     @PutMapping("/{userId}")
-    OkResponse updateUser(@PathVariable("userId") String userId,
+    OkResponse<?> updateUser(@PathVariable("userId") String userId,
                           @RequestBody @Valid UserUpdateRequest request) {
         UserResponse user = userService.updateUser(userId, request);
         return OkResponse.builder()
@@ -48,7 +48,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    OkResponse getUserById(@PathVariable("userId") String userId) {
+    OkResponse<?> getUserById(@PathVariable("userId") String userId) {
         UserResponse user = userService.getUserById(userId);
         return OkResponse.builder()
                 .data(user)

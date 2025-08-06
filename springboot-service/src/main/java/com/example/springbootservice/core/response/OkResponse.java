@@ -1,6 +1,6 @@
 package com.example.springbootservice.core.response;
 
-import com.example.springbootservice.core.AppConstants;
+import com.example.springbootservice.core.enums.SuccessCode;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -15,7 +15,7 @@ public class OkResponse<T> {
     final boolean success = true;
 
     @Builder.Default
-    int code = AppConstants.SuccessCode.OK;
+    int code = SuccessCode.OK.getCode();
 
     String message;
     T data;

@@ -3,7 +3,7 @@ package com.example.springbootservice.controller;
 import com.example.springbootservice.core.response.OkResponse;
 import com.example.springbootservice.dto.request.LoginRequest;
 import com.example.springbootservice.dto.response.AuthenticationResponse;
-import com.example.springbootservice.service.AuthenticationService;
+import com.example.springbootservice.service.ServiceImpl.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +23,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    OkResponse login(@RequestBody @Valid LoginRequest request) {
+    OkResponse<?> login(@RequestBody @Valid LoginRequest request) {
         AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
 
         return OkResponse.builder()

@@ -1,7 +1,7 @@
-package com.example.springbootservice.service;
+package com.example.springbootservice.service.ServiceImpl;
 
-import com.example.springbootservice.core.AppConstants;
-import com.example.springbootservice.core.AppException;
+import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.dto.request.LoginRequest;
 import com.example.springbootservice.dto.response.AuthenticationResponse;
 import com.example.springbootservice.entity.User;
@@ -28,19 +28,19 @@ public class AuthenticationService {
         User user = userRepository.findByUsername(request.getUsername());
 
         if (user == null)
-            throw new AppException(AppConstants.ExceptionType.UNAUTHORIZED,
+            throw new AppException(ErrorCode.ENTITY_NOT_FOUND,
                     "User with username " + request.getUsername() + " not found");
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
         if (!authenticated)
-            throw new AppException(AppConstants.ExceptionType.UNAUTHORIZED,
+            throw new AppException(ErrorCode.UNAUTHORIZED,
                     "Invalid password");
 
         return AuthenticationResponse.builder()
                 .authenticated(true)
-                .accessToken(jwtUtils.generateAccessToken(user.getUsername()))
+                .accessToken(jwtUtils.generateAccessToken(user))
                 .build();
     }
 }

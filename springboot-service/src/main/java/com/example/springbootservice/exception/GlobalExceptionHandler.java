@@ -1,7 +1,7 @@
 package com.example.springbootservice.exception;
 
-import com.example.springbootservice.core.AppConstants;
-import com.example.springbootservice.core.AppException;
+import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.core.response.ErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
@@ -13,15 +13,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ErrorResponse> handlingRuntimeException(AppException exception) {
-        int statusCode = AppConstants.ExceptionType.CODE_MAP.getOrDefault(
-                exception.getType(), 500);
+        ErrorCode errorCode = exception.getErrorCode();
 
         ErrorResponse response = ErrorResponse.builder()
-                .code(statusCode)
-                .type(exception.getType())
+                .code(errorCode.getCode())
+                .type(errorCode.name())
                 .message(exception.getMessage())
                 .build();
-        return ResponseEntity.badRequest().body(response);
+        return ResponseEntity.status(errorCode.getCode()).body(response);
     }
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)
@@ -33,15 +32,14 @@ public class GlobalExceptionHandler {
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
                 .orElse("Validation error");
 
-        String type = AppConstants.ExceptionType.VALIDATION_ERROR;
-        int statusCode = AppConstants.ExceptionType.CODE_MAP.getOrDefault(
-                type, 400);
+        ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
 
         ErrorResponse response = ErrorResponse.builder()
-                .code(statusCode)
-                .type(type)
+                .code(errorCode.getCode())
+                .type(errorCode.name())
                 .message(message)
                 .build();
-        return ResponseEntity.status(statusCode).body(response);
+
+        return ResponseEntity.status(errorCode.getCode()).body(response);
     }
 }
