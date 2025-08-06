@@ -1,5 +1,8 @@
 package com.example.springbootservice.core.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum SuccessCode {
     OK(200),
     CREATED(201),
@@ -12,8 +15,5 @@ public enum SuccessCode {
         this.code = code;
     }
 
-    public int getCode() {
-        return code;
-    }
 }
 

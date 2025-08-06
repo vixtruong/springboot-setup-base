@@ -22,6 +22,20 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    private final String[] publicGetPaths = {
+            // User
+            "/api/users/*",
+    };
+
+    private final String[] publicPostPaths = {
+            // User
+            "/api/users",
+            // Auth
+            "/api/auth/login",
+            "/api/auth/register",
+            "/api/auth/logout",
+    };
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -34,9 +48,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/users").hasAuthority(Role.ADMIN.name())
 
-                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, publicGetPaths).permitAll()
+                        .requestMatchers(HttpMethod.POST, publicPostPaths).permitAll()
                         .anyRequest().authenticated()
                 )
 

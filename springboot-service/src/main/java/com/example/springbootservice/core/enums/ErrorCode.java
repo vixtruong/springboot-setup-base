@@ -1,5 +1,9 @@
 package com.example.springbootservice.core.enums;
 
+
+import lombok.Getter;
+
+@Getter
 public enum ErrorCode {
     VALIDATION_ERROR(400),
     ENTITY_NOT_FOUND(404),
@@ -11,15 +15,11 @@ public enum ErrorCode {
     CONFLICT(409),
     TIMEOUT(408),
     SERVICE_UNAVAILABLE(503);
-
+    
     private final int code;
 
     ErrorCode(int code) {
         this.code = code;
-    }
-
-    public int getCode() {
-        return code;
     }
 
     public static ErrorCode fromString(String name) {
