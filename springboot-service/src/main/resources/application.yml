@@ -26,3 +26,4 @@ jwt:
   secretKey: ${JWT_SECRET:defaultValueIfMissing}
   issuer: "springboot-service"
   audience: "web-client"
+  expiration: 900000

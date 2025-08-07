@@ -2,10 +2,12 @@ package com.example.springbootservice.controller;
 
 import com.example.springbootservice.core.response.OkResponse;
 import com.example.springbootservice.dto.request.LoginRequest;
+import com.example.springbootservice.dto.request.RefreshTokenRequest;
 import com.example.springbootservice.dto.response.AuthenticationResponse;
 import com.example.springbootservice.dto.response.MessageResponse;
 import com.example.springbootservice.service.RedisService;
 import com.example.springbootservice.service.ServiceImpl.AuthenticationService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -38,6 +40,17 @@ public class AuthenticationController {
 
         return OkResponse.builder()
                 .data(new MessageResponse("Logged out successfully"))
+                .build();
+    }
+
+    @PostMapping("/refresh")
+    OkResponse<?> refreshToken(@RequestBody @Valid RefreshTokenRequest tokenRequest,
+                               HttpServletRequest request) {
+        AuthenticationResponse response =
+                authenticationService.refreshToken(tokenRequest.getRefreshToken(), request);
+
+        return OkResponse.builder()
+                .data(response)
                 .build();
     }
 }

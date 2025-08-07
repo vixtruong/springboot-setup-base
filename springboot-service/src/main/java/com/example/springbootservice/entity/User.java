@@ -29,6 +29,9 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String roles;
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    Set<RefreshToken> refreshTokens;
+
     public User(UserCreationRequest request) {
         this.username = request.getUsername();
         this.password = request.getPassword();

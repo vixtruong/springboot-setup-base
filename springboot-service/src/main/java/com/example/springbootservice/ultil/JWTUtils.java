@@ -1,5 +1,7 @@
 package com.example.springbootservice.ultil;
 
+import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.core.property.JwtProperties;
 import com.example.springbootservice.entity.User;
 import com.example.springbootservice.security.CustomUserDetails;
@@ -8,6 +10,7 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,14 +30,16 @@ public class JWTUtils {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", user.getRoles());
 
+        long nowMillis = System.currentTimeMillis();
+
         return Jwts.builder()
                 .claims()
                 .add(claims)
                 .subject(user.getId())
                 .issuer(JwtProperties.STATIC_ISSUER)
                 .audience().add(JwtProperties.STATIC_AUDIENCE).and()
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() * 1000 * 60 * 30))
+                .issuedAt(new Date(nowMillis))
+                .expiration(new Date(nowMillis + JwtProperties.STATIC_EXPIRATION))
                 .id(UUID.randomUUID().toString())
                 .and()
                 .signWith(getKey())
@@ -82,6 +87,15 @@ public class JWTUtils {
         final Claims claims = getClaims(token);
         return claimsResolver.apply(claims);
     }
+
+    public String extractJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        throw new AppException(ErrorCode.UNAUTHORIZED, "Missing or invalid Authorization header");
+    }
+
 
     private Claims getClaims(String token) {
         return Jwts.parser()
