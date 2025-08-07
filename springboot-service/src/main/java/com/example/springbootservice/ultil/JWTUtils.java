@@ -35,6 +35,7 @@ public class JWTUtils {
                 .audience().add(JwtProperties.STATIC_AUDIENCE).and()
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() * 1000 * 60 * 30))
+                .id(UUID.randomUUID().toString())
                 .and()
                 .signWith(getKey())
                 .compact();
@@ -59,6 +60,9 @@ public class JWTUtils {
         }
     }
 
+    public String extractTokenId(String token) {
+        return extractClaim(token, Claims::getId);
+    }
 
     public String extractUserId(String token) {
         return extractClaim(token, Claims::getSubject);

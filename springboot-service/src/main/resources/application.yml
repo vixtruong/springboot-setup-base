@@ -14,6 +14,14 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+  cache:
+    type: redis
+
 jwt:
   secretKey: ${JWT_SECRET:defaultValueIfMissing}
   issuer: "springboot-service"

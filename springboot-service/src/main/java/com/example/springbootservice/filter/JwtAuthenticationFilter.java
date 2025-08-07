@@ -1,7 +1,11 @@
 package com.example.springbootservice.filter;
 
+import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.exception.AppException;
+import com.example.springbootservice.service.RedisService;
 import com.example.springbootservice.service.UserService;
 import com.example.springbootservice.ultil.JWTUtils;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,10 +24,12 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTUtils jwtUtils;
     private final UserService customUserService;
+    private final RedisService redisService;
 
-    public JwtAuthenticationFilter(JWTUtils jwtUtils, UserService customUserService) {
+    public JwtAuthenticationFilter(JWTUtils jwtUtils, UserService customUserService, RedisService redisService) {
         this.jwtUtils = jwtUtils;
         this.customUserService = customUserService;
+        this.redisService = redisService;
     }
 
     @Override
@@ -35,6 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = getJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && jwtUtils.isTokenValid(jwt)) {
+                if (redisService.isInBlacklist(jwt)) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED, "Token is blacklist");
+                }
+
                 String userId = jwtUtils.extractUserId(jwt);
                 UserDetails userDetails = customUserService.getUserDetailsById(userId);
 
@@ -44,8 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }
+        } catch (AppException e) {
+            throw e;
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid or expired token", e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new AppException(ErrorCode.INTERNAL_ERROR, "Authentication failed", e);
         }
 
         filterChain.doFilter(request, response);

@@ -6,6 +6,7 @@ import com.example.springbootservice.dto.request.LoginRequest;
 import com.example.springbootservice.dto.response.AuthenticationResponse;
 import com.example.springbootservice.entity.User;
 import com.example.springbootservice.repository.UserRepository;
+import com.example.springbootservice.service.RedisService;
 import com.example.springbootservice.ultil.JWTUtils;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -18,10 +19,12 @@ import org.springframework.stereotype.Service;
 public class AuthenticationService {
     UserRepository userRepository;
     JWTUtils jwtUtils;
+    RedisService redisService;
 
-    public AuthenticationService(UserRepository userRepository, JWTUtils jwtUtils) {
+    public AuthenticationService(UserRepository userRepository, JWTUtils jwtUtils, RedisService redisService) {
         this.userRepository = userRepository;
         this.jwtUtils = jwtUtils;
+        this.redisService = redisService;
     }
 
     public AuthenticationResponse isAuthenticated(LoginRequest request) {
@@ -42,5 +45,13 @@ public class AuthenticationService {
                 .authenticated(true)
                 .accessToken(jwtUtils.generateAccessToken(user))
                 .build();
+    }
+
+    public void logout(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer "))
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid Authorization header");
+
+        String jwt = authHeader.substring(7);
+        redisService.setBacklist(jwt);
     }
 }
