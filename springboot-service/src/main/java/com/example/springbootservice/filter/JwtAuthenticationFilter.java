@@ -41,8 +41,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = jwtUtils.extractJwtFromRequest(request);
 
             if (StringUtils.hasText(jwt) && jwtUtils.isTokenValid(jwt)) {
-                if (redisService.isInBlacklist(jwt)) {
-                    throw new AppException(ErrorCode.UNAUTHORIZED, "Token is blacklist");
+                String path = request.getRequestURI();
+
+                if (!path.contains("/auth/refresh") && redisService.isInBlacklist(jwt)) {
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    return;
                 }
 
                 String userId = jwtUtils.extractUserId(jwt);

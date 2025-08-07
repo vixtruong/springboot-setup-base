@@ -62,6 +62,10 @@ public class AuthenticationService {
             throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid Authorization header");
 
         String jwt = authHeader.substring(7);
+
+        String userId = jwtUtils.extractUserId(jwt);
+
+        refreshTokenRepository.deleteAllByUserId(userId);
         redisService.setBacklist(jwt);
     }
 
@@ -97,6 +101,7 @@ public class AuthenticationService {
                 .expiryDate(Instant.now().plus(7, ChronoUnit.DAYS))
                 .isInvoked(false)
                 .build();
+        refreshTokenRepository.deleteAllByUserId(user.getId());
         refreshTokenRepository.save(token);
         return token.getToken();
     }
@@ -113,5 +118,4 @@ public class AuthenticationService {
         refreshTokenRepository.save(token);
         return token;
     }
-
 }

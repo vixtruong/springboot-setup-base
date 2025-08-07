@@ -93,9 +93,8 @@ public class JWTUtils {
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
-        throw new AppException(ErrorCode.UNAUTHORIZED, "Missing or invalid Authorization header");
+        return null;
     }
-
 
     private Claims getClaims(String token) {
         return Jwts.parser()
