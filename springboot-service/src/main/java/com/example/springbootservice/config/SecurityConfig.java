@@ -1,7 +1,7 @@
 package com.example.springbootservice.config;
 
 import com.example.springbootservice.core.enums.Role;
-import com.example.springbootservice.filter.JwtAuthenticationFilter;
+import com.example.springbootservice.config.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

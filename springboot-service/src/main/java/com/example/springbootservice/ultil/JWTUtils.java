@@ -1,10 +1,8 @@
 package com.example.springbootservice.ultil;
 
-import com.example.springbootservice.core.enums.ErrorCode;
-import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.core.property.JwtProperties;
 import com.example.springbootservice.entity.User;
-import com.example.springbootservice.security.CustomUserDetails;
+import com.example.springbootservice.config.security.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

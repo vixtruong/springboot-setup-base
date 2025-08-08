@@ -1,4 +1,4 @@
-package com.example.springbootservice.security;
+package com.example.springbootservice.config.security;
 
 import com.example.springbootservice.core.enums.Role;
 import com.example.springbootservice.entity.User;

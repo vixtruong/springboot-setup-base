@@ -1,7 +1,6 @@
-package com.example.springbootservice.exception;
+package com.example.springbootservice.core.exception;
 
 import com.example.springbootservice.core.enums.ErrorCode;
-import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.core.response.ErrorResponse;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
