@@ -11,13 +11,17 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OkResponse<T> {
+public class OkResponse {
     final boolean success = true;
 
     @Builder.Default
     int code = SuccessCode.OK.getCode();
 
     String message;
-    T data;
+    Object data;
+
+    public OkResponse(Object data) {
+        this.data = data;
+    }
 }
 

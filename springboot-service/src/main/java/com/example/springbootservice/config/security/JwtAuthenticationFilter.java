@@ -1,4 +1,4 @@
-package com.example.springbootservice.config.filter;
+package com.example.springbootservice.config.security;
 
 import com.example.springbootservice.core.enums.ErrorCode;
 import com.example.springbootservice.core.exception.AppException;

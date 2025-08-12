@@ -26,7 +26,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    OkResponse<?> login(@RequestBody @Valid LoginRequest request) {
+    OkResponse login(@RequestBody @Valid LoginRequest request) {
         AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
 
         return OkResponse.builder()
@@ -35,7 +35,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    OkResponse<?> logout(@RequestHeader("Authorization") String authHeader) {
+    OkResponse logout(@RequestHeader("Authorization") String authHeader) {
         authenticationService.logout(authHeader);
 
         return OkResponse.builder()
@@ -44,13 +44,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    OkResponse<?> refreshToken(@RequestBody @Valid RefreshTokenRequest tokenRequest,
-                               HttpServletRequest request) {
+    OkResponse refreshToken(@RequestBody @Valid RefreshTokenRequest tokenRequest,
+                            HttpServletRequest request) {
         AuthenticationResponse response =
                 authenticationService.refreshToken(tokenRequest.getRefreshToken(), request);
 
-        return OkResponse.builder()
-                .data(response)
-                .build();
+        return new OkResponse(response);
     }
 }
