@@ -14,13 +14,12 @@ import lombok.experimental.FieldDefaults;
 public class OkResponse {
     final boolean success = true;
 
-    @Builder.Default
-    int code = SuccessCode.OK.getCode();
+    int code;
 
-    String message;
     Object data;
 
     public OkResponse(Object data) {
+        this.code = SuccessCode.OK.getCode();
         this.data = data;
     }
 }

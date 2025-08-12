@@ -18,29 +18,23 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
     AuthenticationService authenticationService;
-    RedisService redisService;
 
-    public AuthenticationController(AuthenticationService authenticationService, RedisService redisService) {
+    public AuthenticationController(AuthenticationService authenticationService) {
         this.authenticationService = authenticationService;
-        this.redisService = redisService;
     }
 
     @PostMapping("/login")
     OkResponse login(@RequestBody @Valid LoginRequest request) {
         AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
 
-        return OkResponse.builder()
-                .data(authResponse)
-                .build();
+        return new OkResponse(authResponse);
     }
 
     @PostMapping("/logout")
     OkResponse logout(@RequestHeader("Authorization") String authHeader) {
         authenticationService.logout(authHeader);
 
-        return OkResponse.builder()
-                .data(new MessageResponse("Logged out successfully"))
-                .build();
+        return new OkResponse(new MessageResponse("Logged out successfully"));
     }
 
     @PostMapping("/refresh")
