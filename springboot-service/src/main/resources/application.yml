@@ -25,3 +25,7 @@ jwt:
   issuer: "springboot-service"
   audience: "web-client"
   expiration: 900000
+
+cors:
+  origins: ${CORS_ALLOWED_ORIGINS}
+  methods: ${CORS_ALLOWED_METHODS}

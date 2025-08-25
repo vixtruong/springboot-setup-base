@@ -57,14 +57,13 @@ public class AuthenticationService {
                 .build();
     }
 
-    public void logout(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer "))
-            throw new AppException(ErrorCode.UNAUTHORIZED, "Invalid Authorization header");
-
-        String jwt = authHeader.substring(7);
+    public void logout(HttpServletRequest request) {
+        String jwt = jwtUtils.extractJwtFromCookies(request);
+        if (jwt == null) {
+            throw new AppException(ErrorCode.UNAUTHORIZED, "No access token");
+        }
 
         String userId = jwtUtils.extractUserId(jwt);
-
         refreshTokenRepository.deleteAllByUserId(userId);
         redisService.setBacklist(jwt);
     }

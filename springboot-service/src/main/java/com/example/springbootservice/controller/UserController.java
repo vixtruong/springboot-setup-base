@@ -28,11 +28,11 @@ public class UserController {
         return new OkResponse(users);
     }
 
-    @PostMapping
-    OkResponse createUser(@RequestBody @Valid UserCreationRequest request) {
-        UserResponse user = userService.createUser(request);
-        return new OkResponse(user);
-    }
+//    @PostMapping
+//    OkResponse createUser(@RequestBody @Valid UserCreationRequest request) {
+//        UserResponse user = userService.createUser(request);
+//        return new OkResponse(user);
+//    }
 
     @PutMapping("/{userId}")
     OkResponse updateUser(@PathVariable("userId") String userId,
