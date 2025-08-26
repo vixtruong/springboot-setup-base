@@ -3,7 +3,7 @@ package com.example.springbootservice.config.security;
 import com.example.springbootservice.core.enums.ErrorCode;
 import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.service.RedisService;
-import com.example.springbootservice.service.UserService;
+import com.example.springbootservice.service.interfaces.IUserService;
 import com.example.springbootservice.ultil.JWTUtils;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -23,10 +23,10 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JWTUtils jwtUtils;
-    private final UserService customUserService;
+    private final IUserService customUserService;
     private final RedisService redisService;
 
-    public JwtAuthenticationFilter(JWTUtils jwtUtils, UserService customUserService, RedisService redisService) {
+    public JwtAuthenticationFilter(JWTUtils jwtUtils, IUserService customUserService, RedisService redisService) {
         this.jwtUtils = jwtUtils;
         this.customUserService = customUserService;
         this.redisService = redisService;
@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            String jwt = jwtUtils.extractJwtFromRequest(request);
+            String jwt = jwtUtils.extractJwtFromCookies(request);
 
             if (StringUtils.hasText(jwt) && jwtUtils.isTokenValid(jwt)) {
                 String path = request.getRequestURI();
@@ -48,8 +48,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                String userId = jwtUtils.extractUserId(jwt);
-                UserDetails userDetails = customUserService.getUserDetailsById(userId);
+                String uid = jwtUtils.extractUserUid(jwt);
+                UserDetails userDetails = customUserService.getUserDetailsByUid(uid);
 
                 UsernamePasswordAuthenticationToken authenticationToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

@@ -7,7 +7,7 @@ import lombok.experimental.FieldDefaults;
 import java.time.Instant;
 
 @Entity
-@Table(name = "refresh_tokens")
+@Table(name = "RefreshTokens")
 @Data
 @Builder
 @NoArgsConstructor
@@ -22,7 +22,7 @@ public class RefreshToken {
     String token;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "UserId", nullable = false)
     User user;
 
     @Column(nullable = false)

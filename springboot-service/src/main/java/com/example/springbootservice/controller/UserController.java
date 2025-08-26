@@ -1,10 +1,10 @@
 package com.example.springbootservice.controller;
 
 import com.example.springbootservice.core.response.OkResponse;
-import com.example.springbootservice.dto.request.UserCreationRequest;
 import com.example.springbootservice.dto.request.UserUpdateRequest;
 import com.example.springbootservice.dto.response.UserResponse;
-import com.example.springbootservice.service.UserService;
+import com.example.springbootservice.service.interfaces.IUserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
@@ -16,9 +16,9 @@ import java.util.List;
 @RequestMapping("/api/users")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
-    private final UserService userService;
+    private final IUserService userService;
 
-    public UserController(UserService userService) {
+    public UserController(IUserService userService) {
         this.userService = userService;
     }
 
@@ -26,6 +26,13 @@ public class UserController {
     OkResponse getUsers() {
         List<UserResponse> users = userService.getUsers();
         return new OkResponse(users);
+    }
+
+    @GetMapping("/profile")
+    OkResponse getProfile(HttpServletRequest request) {
+        UserResponse user = userService.getProfile(request);
+
+        return new OkResponse(user);
     }
 
 //    @PostMapping

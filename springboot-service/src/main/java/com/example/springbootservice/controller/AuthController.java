@@ -6,8 +6,8 @@ import com.example.springbootservice.dto.request.UserCreationRequest;
 import com.example.springbootservice.dto.response.AuthenticationResponse;
 import com.example.springbootservice.dto.response.MessageResponse;
 import com.example.springbootservice.dto.response.UserResponse;
-import com.example.springbootservice.service.ServiceImpl.AuthenticationService;
-import com.example.springbootservice.service.UserService;
+import com.example.springbootservice.service.interfaces.IAuthService;
+import com.example.springbootservice.service.interfaces.IUserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -19,26 +19,26 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("api/auth")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class AuthenticationController {
-    AuthenticationService authenticationService;
-    UserService userService;
+public class AuthController {
+    IAuthService authenticationService;
+    IUserService userService;
 
-    public AuthenticationController(AuthenticationService authenticationService, UserService userService) {
+    public AuthController(IAuthService authenticationService, IUserService userService) {
         this.authenticationService = authenticationService;
         this.userService = userService;
     }
 
     @PostMapping("/login")
     OkResponse login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) {
-        AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
+//        AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
 
-        Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
-        response.addCookie(accessCookie);
+//        Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
+//        response.addCookie(accessCookie);
+//
+//        Cookie refreshCookie = generateRefreshTokenCookie(authResponse.getRefreshToken());
+//        response.addCookie(refreshCookie);
 
-        Cookie refreshCookie = generateRefreshTokenCookie(authResponse.getRefreshToken());
-        response.addCookie(refreshCookie);
-
-        return new OkResponse(authResponse);
+        return new OkResponse();
     }
 
     @PostMapping("/register")

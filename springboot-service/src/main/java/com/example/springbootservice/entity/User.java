@@ -1,6 +1,7 @@
 package com.example.springbootservice.entity;
 
 import com.example.springbootservice.dto.request.UserCreationRequest;
+import com.example.springbootservice.entity.base.BaseEntity;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
@@ -10,33 +11,40 @@ import lombok.experimental.FieldDefaults;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
-@Table(name = "users")
-@Data
-@Builder
+@Table(name = "Users")
+@Getter
+@Setter
+@ToString
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String id;
-    private String username;
-    private String password;
+@Builder
+public class User extends BaseEntity {
+    private String uid;
+    private String email;
     private String fullName;
     private LocalDate birthday;
+    private boolean isActive;
     @Column(columnDefinition = "TEXT")
     private String roles;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    Set<RefreshToken> refreshTokens;
+    @ToString.Exclude
+    private Set<RefreshToken> refreshTokens;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private Set<Account> accounts;
 
     public User(UserCreationRequest request) {
-        this.username = request.getUsername();
-        this.password = request.getPassword();
+        this.email = request.getEmail();
         this.fullName = request.getFullName();
         this.birthday = request.getBirthday();
+        this.isActive = true;
+        this.uid = UUID.randomUUID().toString();
     }
 
     @Transient
@@ -58,4 +66,13 @@ public class User {
             this.roles = "[]";
         }
     }
+
+    public void addAccount(Account account) {
+        if (accounts == null) {
+            accounts = new HashSet<>();
+        }
+        accounts.add(account);
+        account.setUser(this);
+    }
+
 }

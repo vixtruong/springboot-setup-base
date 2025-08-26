@@ -34,7 +34,7 @@ public class JWTUtils {
         return Jwts.builder()
                 .claims()
                 .add(claims)
-                .subject(user.getId())
+                .subject(user.getUid())
                 .issuer(JwtProperties.STATIC_ISSUER)
                 .audience().add(JwtProperties.STATIC_AUDIENCE).and()
                 .issuedAt(new Date(nowMillis))
@@ -68,7 +68,7 @@ public class JWTUtils {
         return extractClaim(token, Claims::getId);
     }
 
-    public String extractUserId(String token) {
+    public String extractUserUid(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
