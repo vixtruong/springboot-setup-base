@@ -26,6 +26,5 @@ public class UserCreationRequest {
     @NotBlank(message = "Full name is required")
     String fullName;
 
-    @NotNull(message = "Birthday is required")
     LocalDate birthday;
 }

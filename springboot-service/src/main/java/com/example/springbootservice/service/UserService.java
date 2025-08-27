@@ -1,7 +1,6 @@
 package com.example.springbootservice.service;
 
 import com.example.springbootservice.core.enums.ErrorCode;
-import com.example.springbootservice.core.enums.Provider;
 import com.example.springbootservice.core.enums.Role;
 import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.dto.request.UserCreationRequest;
@@ -53,7 +52,7 @@ public class UserService implements IUserService {
                 .builder()
                 .user(user)
                 .passwordHash(passwordHash)
-                .provider(Provider.LOCAL.name())
+                .provider("LOCAL")
                 .build();
 
         user.addAccount(newAccount);

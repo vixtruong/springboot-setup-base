@@ -1,13 +1,10 @@
 package com.example.springbootservice.entity;
 
 import com.example.springbootservice.entity.base.BaseEntityNoUpdate;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.FieldDefaults;
+
+import java.util.UUID;
 
 @Entity
 @Table(name = "Accounts")

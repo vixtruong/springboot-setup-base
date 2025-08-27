@@ -1,9 +1,12 @@
 package com.example.springbootservice.service;
 
 import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.enums.Role;
 import com.example.springbootservice.core.exception.AppException;
-import com.example.springbootservice.dto.request.LoginRequest;
-import com.example.springbootservice.dto.response.AuthenticationResponse;
+import com.example.springbootservice.dto.request.LocalLoginRequest;
+import com.example.springbootservice.dto.request.OAuthLoginRequest;
+import com.example.springbootservice.dto.response.AuthResponse;
+import com.example.springbootservice.entity.Account;
 import com.example.springbootservice.entity.RefreshToken;
 import com.example.springbootservice.entity.User;
 import com.example.springbootservice.repository.RefreshTokenRepository;
@@ -13,10 +16,13 @@ import com.example.springbootservice.ultil.JWTUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.HashSet;
 import java.util.UUID;
 
 @Service
@@ -34,31 +40,70 @@ public class AuthService implements IAuthService {
         this.redisService = redisService;
     }
 
-//    public AuthenticationResponse isAuthenticated(LoginRequest request) {
-//        User user = userRepository.findByEmail(request.getEmail());
-//
-//        if (user == null)
-//            throw new AppException(ErrorCode.ENTITY_NOT_FOUND,
-//                    "User with email " + request.getEmail() + " not found");
-//
-//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-//
-//        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-//        if (!authenticated)
-//            throw new AppException(ErrorCode.UNAUTHORIZED,
-//                    "Invalid password");
-//
-//        return AuthenticationResponse.builder()
-//                .authenticated(true)
-//                .accessToken(jwtUtils.generateAccessToken(user))
-//                .refreshToken(generateRefreshToken(user))
-//                .build();
-//    }
+    public AuthResponse localLogin(LocalLoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.ENTITY_NOT_FOUND,
+                        "User with email " + request.getEmail() + " not found"));
 
-    @Override
-    public AuthenticationResponse isAuthenticated(LoginRequest request) {
-        return null;
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+        Account account = user.getAccounts().stream()
+                .filter(acc -> acc.getProvider().equals("LOCAL"))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED, "User not registered"));
+
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), account.getPasswordHash());
+        if (!authenticated)
+            throw new AppException(ErrorCode.UNAUTHORIZED,
+                    "Invalid password");
+
+        return AuthResponse.builder()
+                .authenticated(true)
+                .accessToken(jwtUtils.generateAccessToken(user))
+                .refreshToken(generateRefreshToken(user))
+                .build();
     }
+
+    public AuthResponse oAuthLogin(OAuthLoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseGet(() -> {
+                    User newUser = User.builder()
+                            .email(request.getEmail())
+                            .fullName(request.getFullName())
+                            .build();
+
+                    HashSet<String> roles = new HashSet<>();
+                    roles.add(Role.USER.name());
+                    newUser.setRoleSet(roles);
+
+                    Account account = Account.builder()
+                            .user(newUser)
+                            .provider(request.getProvider().toUpperCase())
+                            .build();
+
+                    newUser.addAccount(account);
+                    return userRepository.save(newUser);
+                });
+
+        boolean hasProvider = user.getAccounts().stream()
+                .anyMatch(acc -> acc.getProvider().equals(request.getProvider()));
+
+        if (!hasProvider) {
+            Account account = Account.builder()
+                    .user(user)
+                    .provider(request.getProvider().toUpperCase())
+                    .build();
+            user.addAccount(account);
+            userRepository.save(user);
+        }
+
+        return AuthResponse.builder()
+                .authenticated(true)
+                .accessToken(jwtUtils.generateAccessToken(user))
+                .refreshToken(generateRefreshToken(user))
+                .build();
+    }
+
 
     public void logout(HttpServletRequest request) {
         String jwt = jwtUtils.extractJwtFromCookies(request);
@@ -71,7 +116,7 @@ public class AuthService implements IAuthService {
         redisService.setBacklist(jwt);
     }
 
-    public AuthenticationResponse refreshToken(String refreshToken, HttpServletRequest request) {
+    public AuthResponse refreshToken(String refreshToken, HttpServletRequest request) {
         RefreshToken token = validateRefreshToken(refreshToken);
         String jwt = jwtUtils.extractJwtFromRequest(request);
 
@@ -89,7 +134,7 @@ public class AuthService implements IAuthService {
         String accessToken = jwtUtils.generateAccessToken(user);
         String newRefreshToken = generateRefreshToken(user);
 
-        return AuthenticationResponse.builder()
+        return AuthResponse.builder()
                 .authenticated(true)
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)

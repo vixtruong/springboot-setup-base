@@ -1,9 +1,10 @@
 package com.example.springbootservice.controller;
 
 import com.example.springbootservice.core.response.OkResponse;
-import com.example.springbootservice.dto.request.LoginRequest;
+import com.example.springbootservice.dto.request.LocalLoginRequest;
+import com.example.springbootservice.dto.request.OAuthLoginRequest;
 import com.example.springbootservice.dto.request.UserCreationRequest;
-import com.example.springbootservice.dto.response.AuthenticationResponse;
+import com.example.springbootservice.dto.response.AuthResponse;
 import com.example.springbootservice.dto.response.MessageResponse;
 import com.example.springbootservice.dto.response.UserResponse;
 import com.example.springbootservice.service.interfaces.IAuthService;
@@ -20,23 +21,36 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/auth")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
-    IAuthService authenticationService;
+    IAuthService authService;
     IUserService userService;
 
-    public AuthController(IAuthService authenticationService, IUserService userService) {
-        this.authenticationService = authenticationService;
+    public AuthController(IAuthService authService, IUserService userService) {
+        this.authService = authService;
         this.userService = userService;
     }
 
     @PostMapping("/login")
-    OkResponse login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) {
-//        AuthenticationResponse authResponse = authenticationService.isAuthenticated(request);
+    OkResponse login(@RequestBody @Valid LocalLoginRequest request, HttpServletResponse response) {
+        AuthResponse authResponse = authService.localLogin(request);
 
-//        Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
-//        response.addCookie(accessCookie);
-//
-//        Cookie refreshCookie = generateRefreshTokenCookie(authResponse.getRefreshToken());
-//        response.addCookie(refreshCookie);
+        Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
+        response.addCookie(accessCookie);
+
+        Cookie refreshCookie = generateRefreshTokenCookie(authResponse.getRefreshToken());
+        response.addCookie(refreshCookie);
+
+        return new OkResponse();
+    }
+
+    @PostMapping("/oauth")
+    OkResponse oAuthLogin(@RequestBody @Valid OAuthLoginRequest request, HttpServletResponse response) {
+        AuthResponse authResponse = authService.oAuthLogin(request);
+
+        Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
+        response.addCookie(accessCookie);
+
+        Cookie refreshCookie = generateRefreshTokenCookie(authResponse.getRefreshToken());
+        response.addCookie(refreshCookie);
 
         return new OkResponse();
     }
@@ -49,7 +63,7 @@ public class AuthController {
 
     @PostMapping("/logout")
     OkResponse logout(HttpServletRequest request, HttpServletResponse response) {
-        authenticationService.logout(request);
+        authService.logout(request);
 
         // clear cookie
         response.addCookie(clearCookie("refreshToken"));
@@ -61,8 +75,8 @@ public class AuthController {
     @PostMapping("/refresh")
     OkResponse refreshToken(@CookieValue("refreshToken") String refreshToken,
                             HttpServletRequest request, HttpServletResponse response) {
-        AuthenticationResponse authResponse =
-                authenticationService.refreshToken(refreshToken, request);
+        AuthResponse authResponse =
+                authService.refreshToken(refreshToken, request);
 
         Cookie accessCookie = generateAccessTokenCookie(authResponse.getAccessToken());
         response.addCookie(accessCookie);
@@ -73,22 +87,23 @@ public class AuthController {
         return new OkResponse(response);
     }
 
-    private Cookie generateRefreshTokenCookie(String refreshToken) {
-        Cookie cookie = new Cookie("refreshToken", refreshToken);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        cookie.setPath("/");
-        cookie.setMaxAge(7 * 24 * 60 * 60);
-
-        return cookie;
-    }
-
     private Cookie generateAccessTokenCookie(String accessToken) {
         Cookie cookie = new Cookie("accessToken", accessToken);
         cookie.setHttpOnly(false);
         cookie.setSecure(true);
         cookie.setPath("/");
         cookie.setMaxAge(15 * 60);
+        cookie.setAttribute("SameSite", "None");
+        return cookie;
+    }
+
+    private Cookie generateRefreshTokenCookie(String refreshToken) {
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath("/");
+        cookie.setMaxAge(7 * 24 * 60 * 60);
+        cookie.setAttribute("SameSite", "None");
         return cookie;
     }
 

@@ -1,6 +1,7 @@
 package com.example.springbootservice.config.security;
 
 import com.example.springbootservice.core.enums.Role;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,16 +32,18 @@ public class SecurityConfig {
             "/api/users",
             // Auth
             "/api/auth/login",
+            "/api/auth/oauth",
             "/api/auth/register",
             "/api/auth/logout",
     };
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
-                .httpBasic(Customizer.withDefaults())
+                .httpBasic(AbstractHttpConfigurer::disable)
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
