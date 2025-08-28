@@ -22,11 +22,9 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthController {
     IAuthService authService;
-    IUserService userService;
 
     public AuthController(IAuthService authService, IUserService userService) {
         this.authService = authService;
-        this.userService = userService;
     }
 
     @PostMapping("/login")
@@ -57,7 +55,7 @@ public class AuthController {
 
     @PostMapping("/register")
     OkResponse register(@RequestBody @Valid UserCreationRequest request) {
-        UserResponse user = userService.createUser(request);
+        UserResponse user = authService.register(request);
         return new OkResponse(user);
     }
 

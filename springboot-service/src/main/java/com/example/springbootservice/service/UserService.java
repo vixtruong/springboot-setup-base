@@ -34,33 +34,6 @@ public class UserService implements IUserService {
     private final JWTUtils jWTUtils;
 
     @Override
-    public UserResponse createUser(UserCreationRequest request) {
-        if (userRepository.existsByEmail(request.getEmail()))
-            throw new AppException(ErrorCode.DUPLICATE_RESOURCE,
-                    "User with email " + request.getEmail() + " already exists");
-
-        User user = new User(request);
-
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name());
-        user.setRoleSet(roles);
-
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        String passwordHash = passwordEncoder.encode(request.getPassword());
-
-        Account newAccount = Account
-                .builder()
-                .user(user)
-                .passwordHash(passwordHash)
-                .provider("LOCAL")
-                .build();
-
-        user.addAccount(newAccount);
-
-        return new UserResponse(userRepository.save(user));
-    }
-
-    @Override
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(
@@ -87,9 +60,8 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public UserResponse getProfile(HttpServletRequest request) {
-        String jwt = jWTUtils.extractJwtFromCookies(request);
-        String userUid = jWTUtils.extractUserUid(jwt);
+    public UserResponse getProfile(String accessToken) {
+        String userUid = jWTUtils.extractUserUid(accessToken);
 
         return getUserByUid(userUid);
     }

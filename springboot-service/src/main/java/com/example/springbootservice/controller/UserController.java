@@ -29,8 +29,11 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    OkResponse getProfile(HttpServletRequest request) {
-        UserResponse user = userService.getProfile(request);
+    OkResponse getProfile(@CookieValue(value = "accessToken", required = false) String accessToken) {
+        if (accessToken == null)
+            return new OkResponse();
+
+        UserResponse user = userService.getProfile(accessToken);
 
         return new OkResponse(user);
     }

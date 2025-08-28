@@ -4,7 +4,7 @@ CREATE TABLE Users
     Uid         CHAR(36)     NOT NULL UNIQUE,
     Email       VARCHAR(255) NOT NULL UNIQUE,
     FullName    VARCHAR(255) NOT NULL,
-    Birthday    DATE         NOT NULL,
+    Birthday    DATE,
     IsActive    BIT          NOT NULL DEFAULT 1,
     Roles       TEXT,
     CreatedTime BIGINT       NOT NULL,

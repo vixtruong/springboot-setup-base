@@ -9,5 +9,6 @@ import lombok.*;
 public class OAuthLoginRequest {
     private String email;
     private String fullName;
+    private String avatarUrl;
     private String provider;
 }

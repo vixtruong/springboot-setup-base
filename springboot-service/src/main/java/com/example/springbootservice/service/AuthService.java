@@ -1,11 +1,14 @@
 package com.example.springbootservice.service;
 
 import com.example.springbootservice.core.enums.ErrorCode;
+import com.example.springbootservice.core.enums.OAuthProvider;
 import com.example.springbootservice.core.enums.Role;
 import com.example.springbootservice.core.exception.AppException;
 import com.example.springbootservice.dto.request.LocalLoginRequest;
 import com.example.springbootservice.dto.request.OAuthLoginRequest;
+import com.example.springbootservice.dto.request.UserCreationRequest;
 import com.example.springbootservice.dto.response.AuthResponse;
+import com.example.springbootservice.dto.response.UserResponse;
 import com.example.springbootservice.entity.Account;
 import com.example.springbootservice.entity.RefreshToken;
 import com.example.springbootservice.entity.User;
@@ -40,6 +43,52 @@ public class AuthService implements IAuthService {
         this.redisService = redisService;
     }
 
+    @Override
+    public UserResponse register(UserCreationRequest request) {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        String passwordHash = passwordEncoder.encode(request.getPassword());
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseGet(() -> {
+                    User newUser = new User(request);
+
+                    HashSet<String> roles = new HashSet<>();
+                    roles.add(Role.USER.name());
+                    newUser.setRoleSet(roles);
+
+                    Account account = Account.builder()
+                            .user(newUser)
+                            .provider(OAuthProvider.LOCAL.name())
+                            .passwordHash(passwordHash)
+                            .build();
+
+                    newUser.addAccount(account);
+                    return userRepository.save(newUser);
+                });
+
+        boolean hasProvider = user.getAccounts().stream()
+                .anyMatch(acc -> acc.getProvider().equals(OAuthProvider.LOCAL.name()));
+
+        if (hasProvider)
+            throw new AppException(ErrorCode.DUPLICATE_RESOURCE,
+                    "User with email " + request.getEmail() + " already exists");
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.USER.name());
+        user.setRoleSet(roles);
+
+        Account newAccount = Account
+                .builder()
+                .user(user)
+                .passwordHash(passwordHash)
+                .provider(OAuthProvider.LOCAL.name())
+                .build();
+
+        user.addAccount(newAccount);
+
+        return new UserResponse(userRepository.save(user));
+    }
+
     public AuthResponse localLogin(LocalLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.ENTITY_NOT_FOUND,
@@ -48,7 +97,7 @@ public class AuthService implements IAuthService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
         Account account = user.getAccounts().stream()
-                .filter(acc -> acc.getProvider().equals("LOCAL"))
+                .filter(acc -> acc.getProvider().equals(OAuthProvider.LOCAL.name()))
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED, "User not registered"));
 
@@ -67,10 +116,7 @@ public class AuthService implements IAuthService {
     public AuthResponse oAuthLogin(OAuthLoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseGet(() -> {
-                    User newUser = User.builder()
-                            .email(request.getEmail())
-                            .fullName(request.getFullName())
-                            .build();
+                    User newUser = new User(request.getEmail(), request.getFullName(), request.getAvatarUrl());
 
                     HashSet<String> roles = new HashSet<>();
                     roles.add(Role.USER.name());
@@ -86,7 +132,7 @@ public class AuthService implements IAuthService {
                 });
 
         boolean hasProvider = user.getAccounts().stream()
-                .anyMatch(acc -> acc.getProvider().equals(request.getProvider()));
+                .anyMatch(acc -> acc.getProvider().equals(request.getProvider().toUpperCase()));
 
         if (!hasProvider) {
             Account account = Account.builder()
@@ -97,6 +143,10 @@ public class AuthService implements IAuthService {
             userRepository.save(user);
         }
 
+        if (user.getAvatarUrl() == null && request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+
         return AuthResponse.builder()
                 .authenticated(true)
                 .accessToken(jwtUtils.generateAccessToken(user))
@@ -104,11 +154,10 @@ public class AuthService implements IAuthService {
                 .build();
     }
 
-
     public void logout(HttpServletRequest request) {
         String jwt = jwtUtils.extractJwtFromCookies(request);
         if (jwt == null) {
-            throw new AppException(ErrorCode.UNAUTHORIZED, "No access token");
+            return;
         }
 
         String uid = jwtUtils.extractUserUid(jwt);

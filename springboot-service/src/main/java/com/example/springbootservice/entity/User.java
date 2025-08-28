@@ -26,6 +26,7 @@ public class User extends BaseEntity {
     private String uid;
     private String email;
     private String fullName;
+    private String avatarUrl;
     private LocalDate birthday;
     private boolean isActive;
     @Column(columnDefinition = "TEXT")
@@ -45,6 +46,13 @@ public class User extends BaseEntity {
         this.birthday = request.getBirthday();
         this.isActive = true;
         this.uid = UUID.randomUUID().toString();
+    }
+
+    public User(String email, String fullName, String avatarUrl) {
+        this.email = email;
+        this.fullName = fullName;
+        this.uid = UUID.randomUUID().toString();
+        this.avatarUrl = avatarUrl;
     }
 
     @Transient
@@ -74,5 +82,4 @@ public class User extends BaseEntity {
         accounts.add(account);
         account.setUser(this);
     }
-
 }
