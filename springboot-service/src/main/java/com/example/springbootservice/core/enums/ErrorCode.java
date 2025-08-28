@@ -14,8 +14,9 @@ public enum ErrorCode {
     DUPLICATE_RESOURCE(409),
     CONFLICT(409),
     TIMEOUT(408),
-    SERVICE_UNAVAILABLE(503);
-    
+    SERVICE_UNAVAILABLE(503),
+    IO_ERROR(500);
+
     private final int code;
 
     ErrorCode(int code) {

@@ -9,7 +9,9 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,7 +30,7 @@ public class UserController {
         return new OkResponse(users);
     }
 
-    @GetMapping("/profile")
+    @GetMapping("/me/profile")
     OkResponse getProfile(@CookieValue(value = "accessToken", required = false) String accessToken) {
         if (accessToken == null)
             return new OkResponse();
@@ -45,9 +47,12 @@ public class UserController {
         return new OkResponse(user);
     }
 
-    @GetMapping("/{userId}")
-    OkResponse getUserById(@PathVariable("userId") String userId) {
-        UserResponse user = userService.getUserById(userId);
-        return new OkResponse(user);
+    @PutMapping("/me/upload")
+    OkResponse uploadAvatar(
+            @CookieValue("accessToken") String accessToken,
+            @RequestParam("file") MultipartFile file
+    ) {
+        userService.uploadAvatar(accessToken, file);
+        return new OkResponse();
     }
 }

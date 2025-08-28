@@ -24,7 +24,7 @@ public class SecurityConfig {
 
     private final String[] publicGetPaths = {
             // User
-            "/api/users/*",
+//            "/api/users/*",
     };
 
     private final String[] publicPostPaths = {
@@ -54,6 +54,7 @@ public class SecurityConfig {
 
                         .requestMatchers(HttpMethod.GET, publicGetPaths).permitAll()
                         .requestMatchers(HttpMethod.POST, publicPostPaths).permitAll()
+                        
                         .anyRequest().authenticated()
                 )
 

@@ -1,5 +1,8 @@
 package com.example.springbootservice.service;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.example.springbootservice.config.CloudinaryConfig;
 import com.example.springbootservice.core.enums.ErrorCode;
 import com.example.springbootservice.core.enums.Role;
 import com.example.springbootservice.core.exception.AppException;
@@ -12,26 +15,25 @@ import com.example.springbootservice.repository.UserRepository;
 import com.example.springbootservice.config.security.CustomUserDetails;
 import com.example.springbootservice.service.interfaces.IUserService;
 import com.example.springbootservice.ultil.JWTUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashSet;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserService implements IUserService {
-
     UserRepository userRepository;
-    private final JWTUtils jWTUtils;
+    JWTUtils jWTUtils;
+    Cloudinary cloudinary;
 
     @Override
     public UserResponse updateUser(String userId, UserUpdateRequest request) {
@@ -86,6 +88,32 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new AppException(ErrorCode.ENTITY_NOT_FOUND,
                         "User with Uid " + uid + " not found"));
     }
+
+    @Override
+    public void uploadAvatar(String accessToken, MultipartFile file) {
+        String userUid = jWTUtils.extractUserUid(accessToken);
+
+        User user = userRepository.findByUid(userUid)
+                .orElseThrow(() -> new AppException(ErrorCode.ENTITY_NOT_FOUND,
+                        "User with Uid " + userUid + " not found"));
+
+        try {
+            Map uploadResult = cloudinary.uploader().upload(
+                    file.getBytes(),
+                    ObjectUtils.asMap(
+                            "folder", "spring-auth-project/users/" + user.getId(),
+                            "public_id", "avatar",
+                            "overwrite", true));
+
+            String avatarUrl = (String) uploadResult.get("secure_url");
+            user.setAvatarUrl(avatarUrl);
+
+            userRepository.save(user);
+        } catch (IOException e) {
+            throw new AppException(ErrorCode.IO_ERROR, "Failed to upload avatar: " + e.getMessage());
+        }
+    }
+
 
     private boolean isUserChanged(User user, UserUpdateRequest request) {
         return !Objects.equals(user.getFullName(), request.getFullName())

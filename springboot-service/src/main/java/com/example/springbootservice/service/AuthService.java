@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -107,7 +108,6 @@ public class AuthService implements IAuthService {
                     "Invalid password");
 
         return AuthResponse.builder()
-                .authenticated(true)
                 .accessToken(jwtUtils.generateAccessToken(user))
                 .refreshToken(generateRefreshToken(user))
                 .build();
@@ -143,12 +143,12 @@ public class AuthService implements IAuthService {
             userRepository.save(user);
         }
 
-        if (user.getAvatarUrl() == null && request.getAvatarUrl() != null) {
+        if (user.getAvatarUrl() == null && request.getAvatarUrl() != null ||
+                !Objects.equals(user.getAvatarUrl(), request.getAvatarUrl())) {
             user.setAvatarUrl(request.getAvatarUrl());
         }
 
         return AuthResponse.builder()
-                .authenticated(true)
                 .accessToken(jwtUtils.generateAccessToken(user))
                 .refreshToken(generateRefreshToken(user))
                 .build();
@@ -167,24 +167,23 @@ public class AuthService implements IAuthService {
 
     public AuthResponse refreshToken(String refreshToken, HttpServletRequest request) {
         RefreshToken token = validateRefreshToken(refreshToken);
-        String jwt = jwtUtils.extractJwtFromRequest(request);
+        String jwt = jwtUtils.extractJwtFromCookies(request);
+        if (jwt != null) {
+            String uid = jwtUtils.extractUserUid(jwt);
+            if (!token.getUser().getUid().equals(uid)) {
+                throw new AppException(ErrorCode.UNAUTHORIZED, "Refresh token does not belong to the user");
+            }
 
-        String uid = jwtUtils.extractUserUid(jwt);
-        if (!token.getUser().getUid().equals(uid)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED, "Refresh token does not belong to the user");
+            if (jwtUtils.isTokenValid(jwt)) {
+                redisService.setBacklist(jwt);
+            }
         }
 
         User user = token.getUser();
-
-        if (jwtUtils.isTokenValid(jwt)) {
-            redisService.setBacklist(jwt);
-        }
-
         String accessToken = jwtUtils.generateAccessToken(user);
         String newRefreshToken = generateRefreshToken(user);
 
         return AuthResponse.builder()
-                .authenticated(true)
                 .accessToken(accessToken)
                 .refreshToken(newRefreshToken)
                 .build();
@@ -206,11 +205,10 @@ public class AuthService implements IAuthService {
         RefreshToken token = refreshTokenRepository.findByToken(tokenStr)
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHORIZED, "Invalid refresh token"));
 
-        if (token.getExpiryDate().isBefore(Instant.now()) || token.isInvoked()) {
+        if (token.getExpiryDate().isBefore(Instant.now())) {
             throw new AppException(ErrorCode.UNAUTHORIZED, "Refresh token expired or already used");
         }
 
-        token.setInvoked(true);
         refreshTokenRepository.save(token);
         return token;
     }

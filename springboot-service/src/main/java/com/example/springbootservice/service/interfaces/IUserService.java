@@ -2,9 +2,10 @@ package com.example.springbootservice.service.interfaces;
 
 import com.example.springbootservice.dto.request.UserUpdateRequest;
 import com.example.springbootservice.dto.response.UserResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface IUserService {
@@ -19,4 +20,6 @@ public interface IUserService {
     UserResponse getUserByUid(String uid);
 
     UserDetails getUserDetailsByUid(String uid);
+
+    void uploadAvatar(String accessToken, MultipartFile file);
 }
